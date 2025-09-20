@@ -7,6 +7,10 @@ dotenv.config();
 
 const PORT = process.env.PORT || 8000;
 connectDB();
+app.use(express.json());
+
+app.use('/api/auth', require("./Routes/authRoute"));
+
 app.get('/', (req, res) => {
     res.json({ message: "server is running" });
 });
