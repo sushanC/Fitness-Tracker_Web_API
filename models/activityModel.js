@@ -19,6 +19,20 @@ const activitySchema = new mongoose.Schema(
         unit: {
             type: String,
             required: true,
+            validate: {
+                validator: function (v) {
+                    const typeUnits = {
+                        steps: ["count"],
+                        pushups: ["count"],
+                        heart_rate: ["bpm"],
+                        calories: ["kcal"],
+                        workout: ["minutes", "hours"],
+                    };
+                    return typeUnits[this.type]?.includes(v);
+                },
+                message: (props) =>
+                    `${props.value} is not a valid unit for activity type ${props.instance.type}`,
+            },
         },
         startTime: {
             type: Date,
@@ -26,6 +40,12 @@ const activitySchema = new mongoose.Schema(
         },
         endTime: {
             type: Date,
+            validate: {
+                validator: function (v) {
+                    return !v || v >= this.startTime;
+                },
+                message: "endTime must be after startTime",
+            },
         },
         raw: {
             type: Object,
@@ -33,4 +53,8 @@ const activitySchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+// Add index for better query performance
+activitySchema.index({ userId: 1, type: 1, startTime: -1 });
+
 module.exports = mongoose.model("Activity", activitySchema);
